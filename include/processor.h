@@ -1,12 +1,17 @@
 #ifndef PROCESSOR_H
 #define PROCESSOR_H
 
+struct CpuJiffies {
+  long active;
+  long total;
+};
+
 class Processor {
  public:
-  float Utilization();  // TODO: See src/processor.cpp
+  float Utilization();
 
-  // TODO: Declare any necessary private members
  private:
+  CpuJiffies last_cpu_jiffies_{};
 };
 
 #endif
