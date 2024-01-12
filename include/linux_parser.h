@@ -18,6 +18,16 @@ const std::string kVersionFilename{"/version"};
 const std::string kOSPath{"/etc/os-release"};
 const std::string kPasswordPath{"/etc/passwd"};
 
+const std::string kMeminfoMemTotalKey{"MemTotal:"};
+const std::string kMeminfoMemFreeKey{"MemFree:"};
+
+const std::string kStatCpuKey{"cpu"};
+const std::string kStatProcessesKey{"processes"};
+const std::string kStatRunningProcessesKey{"procs_running"};
+
+const std::string kStatusVmSizeKey{"VmSize:"};
+const std::string kStatusUidKey{"Uid:"};
+
 // System
 float MemoryUtilization();
 long UpTime();
@@ -47,6 +57,13 @@ long ActiveJiffies(int pid);
 long IdleJiffies();
 
 // Processes
+enum ProcessStates {
+  kUtime = 13,
+  kStime_,
+  kCutime_,
+  kCstime_,
+  kStarttime_ = 21,
+};
 std::string Command(int pid);
 std::string Ram(int pid);
 std::string Uid(int pid);
