@@ -14,7 +14,7 @@ using std::size_t;
 using std::string;
 using std::vector;
 
-Processor& System::Cpu() { return cpu_; }
+Processor& System::AggregatedCpu() { return cpu_; }
 
 vector<Process>& System::Processes() {
   processes_.clear();
@@ -29,6 +29,19 @@ vector<Process>& System::Processes() {
   std::sort(processes_.rbegin(), processes_.rend());
 
   return processes_;
+}
+
+vector<Processor>& System::Cpus() {
+  cpus_.clear();
+
+  const auto cpu_ids = LinuxParser::TotalCpus();
+
+  for (int cpu_id = 0; cpu_id < cpu_ids; ++cpu_id) {
+    auto cpu = Processor(LinuxParser::kStatCpuKey + std::to_string(cpu_id));
+    cpus_.push_back(cpu);
+  }
+
+  return cpus_;
 }
 
 std::string System::Kernel() { return LinuxParser::Kernel(); }

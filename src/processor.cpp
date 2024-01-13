@@ -6,8 +6,8 @@
 using std::string;
 
 float Processor::Utilization() {
-  const auto active = LinuxParser::ActiveJiffies();
-  const auto total = LinuxParser::Jiffies();
+  const auto active = LinuxParser::ActiveJiffies(cpu_id_);
+  const auto total = LinuxParser::Jiffies(cpu_id_);
 
   const auto active_diff = active - last_cpu_jiffies_.active;
   const auto total_diff = total - last_cpu_jiffies_.total;

@@ -113,8 +113,8 @@ long LinuxParser::UpTime() {
   return 0;
 }
 
-long LinuxParser::Jiffies() {
-  return ActiveJiffies() + IdleJiffies();
+long LinuxParser::Jiffies(const std::string& cpu_id) {
+  return ActiveJiffies(cpu_id) + IdleJiffies(cpu_id);
 }
 
 long LinuxParser::ActiveJiffies(int pid) {
@@ -147,14 +147,14 @@ long LinuxParser::ActiveJiffies(int pid) {
 
     const long total_time = utime + stime + cutime + cstime;
 
-    return total_time;
+    return total_time / sysconf(_SC_CLK_TCK);
   }
 
   return 0;
 }
 
-long LinuxParser::ActiveJiffies() {
-  const auto cpu_utilization = CpuUtilization();
+long LinuxParser::ActiveJiffies(const std::string& cpu_id) {
+  const auto cpu_utilization = CpuUtilization(cpu_id);
 
   return std::stoll(cpu_utilization[kUser_]) +
          std::stoll(cpu_utilization[kNice_]) + 
@@ -164,39 +164,59 @@ long LinuxParser::ActiveJiffies() {
          std::stoll(cpu_utilization[kSteal_]);
 }
 
-long LinuxParser::IdleJiffies() {
-  const auto cpu_utilization = CpuUtilization();
+long LinuxParser::IdleJiffies(const std::string& cpu_id) {
+  const auto cpu_utilization = CpuUtilization(cpu_id);
 
   return std::stoll(cpu_utilization[kIdle_]) +
          std::stoll(cpu_utilization[kIOwait_]);
 }
 
-vector<string> LinuxParser::CpuUtilization() {
+vector<string> LinuxParser::CpuUtilization(const string& cpu_id) {
   std::ifstream stream(kProcDirectory + kStatFilename);
 
   vector<string> utilization_values{};
   utilization_values.reserve(10);
 
-  while (stream.is_open()) {
-    string line;
+  while (stream.is_open() && !stream.eof()) {
+       string line;
     std::getline(stream, line);
     std::istringstream linestream(line);
 
     string line_info_id{};
     linestream >> line_info_id;
 
-    if (line_info_id == kStatCpuKey) {
+    if (line_info_id == cpu_id) {
       string value_str{};
 
       while (linestream >> value_str) {
         utilization_values.push_back(value_str);
       }
     }
-
-    return utilization_values;
   }
 
-  return {};
+  return utilization_values;
+}
+
+int LinuxParser::TotalCpus() {
+  std::ifstream stream(kProcDirectory + kStatFilename);
+
+  int cpu_qty{0};
+
+  while (stream.is_open() && !stream.eof()) {
+    string line;
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+
+    string cpu_value{};
+    linestream >> cpu_value;
+
+    if (cpu_value.compare(0, kStatCpuKey.size(), kStatCpuKey) == 0 &&
+        cpu_value.size() > kStatCpuKey.size()) {
+        ++cpu_qty;
+    }
+  }
+
+  return cpu_qty;
 }
 
 int LinuxParser::TotalProcesses() {

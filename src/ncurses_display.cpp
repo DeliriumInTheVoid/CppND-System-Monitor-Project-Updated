@@ -6,6 +6,8 @@
 
 #include "format.h"
 #include "ncurses_display.h"
+
+#include "linux_parser.h"
 #include "system.h"
 
 using std::string;
@@ -32,11 +34,12 @@ void NCursesDisplay::DisplaySystem(System& system, WINDOW* window) {
   int row{0};
   mvwprintw(window, ++row, 2, ("OS: " + system.OperatingSystem()).c_str());
   mvwprintw(window, ++row, 2, ("Kernel: " + system.Kernel()).c_str());
-  mvwprintw(window, ++row, 2, "CPU: ");
-  wattron(window, COLOR_PAIR(1));
-  mvwprintw(window, row, 10, "");
-  wprintw(window, ProgressBar(system.Cpu().Utilization()).c_str());
-  wattroff(window, COLOR_PAIR(1));
+
+  DisplayCpu(system, window, "CPU", system.AggregatedCpu().Utilization(), ++row);
+  for (auto& cpu : system.Cpus()) {
+    DisplayCpu(system, window, cpu.CpuId(), cpu.Utilization(), ++row);
+  }
+
   mvwprintw(window, ++row, 2, "Memory: ");
   wattron(window, COLOR_PAIR(1));
   mvwprintw(window, row, 10, "");
@@ -50,6 +53,16 @@ void NCursesDisplay::DisplaySystem(System& system, WINDOW* window) {
   mvwprintw(window, ++row, 2,
             ("Up Time: " + Format::ElapsedTime(system.UpTime())).c_str());
   wrefresh(window);
+}
+
+void NCursesDisplay::DisplayCpu(System& system, WINDOW* window,
+                                const std::string& cpu_id, const float utilization,
+                                const int row) {
+  mvwprintw(window, row, 2, (cpu_id + ": ").c_str());
+  wattron(window, COLOR_PAIR(1));
+  mvwprintw(window, row, 10, "");
+  wprintw(window, ProgressBar(utilization).c_str());
+  wattroff(window, COLOR_PAIR(1));
 }
 
 void NCursesDisplay::DisplayProcesses(std::vector<Process>& processes,
@@ -90,7 +103,7 @@ void NCursesDisplay::Display(System& system, int n) {
   start_color();  // enable color
 
   int x_max{getmaxx(stdscr)};
-  WINDOW* system_window = newwin(9, x_max - 1, 0, 0);
+  WINDOW* system_window = newwin(9 + LinuxParser::TotalCpus(), x_max - 1, 0, 0);
   WINDOW* process_window =
       newwin(3 + n, x_max - 1, system_window->_maxy + 1, 0);
 

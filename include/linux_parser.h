@@ -32,6 +32,7 @@ const std::string kStatusUidKey{"Uid:"};
 float MemoryUtilization();
 long UpTime();
 std::vector<int> Pids();
+int TotalCpus();
 int TotalProcesses();
 int RunningProcesses();
 std::string OperatingSystem();
@@ -50,11 +51,11 @@ enum CPUStates {
   kGuest_,
   kGuestNice_
 };
-std::vector<std::string> CpuUtilization();
-long Jiffies();
-long ActiveJiffies();
+std::vector<std::string> CpuUtilization(const std::string& cpu_id);
+long Jiffies(const std::string& cpu_id);
+long ActiveJiffies(const std::string& cpu_id);
 long ActiveJiffies(int pid);
-long IdleJiffies();
+long IdleJiffies(const std::string& cpu_id);
 
 // Processes
 enum ProcessStates {

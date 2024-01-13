@@ -4,13 +4,15 @@
 #include <string>
 #include <vector>
 
+#include "linux_parser.h"
 #include "process.h"
 #include "processor.h"
 
 class System {
  public:
-  Processor& Cpu();
+  Processor& AggregatedCpu();
   std::vector<Process>& Processes();
+  std::vector<Processor>& Cpus();
   float MemoryUtilization();
   long UpTime();
   int TotalProcesses();
@@ -19,8 +21,9 @@ class System {
   std::string OperatingSystem();
 
  private:
-  Processor cpu_ = {};
+  Processor cpu_{LinuxParser::kStatCpuKey};
   std::vector<Process> processes_ = {};
+  std::vector<Processor> cpus_ = {};
 };
 
 #endif
